@@ -1,3 +1,5 @@
+const { UserType } = require("./models/userType");
+
 const lobbies = {};
 
 function generatePin() {
@@ -29,7 +31,8 @@ function registerSocketEvents(io, socket){
                 
         
         socket.emit("lobbyCreated", {
-            pin: pin
+            pin: pin,
+            userType: UserType.HOST
         });
 
         io.to(pin).emit("playersUpdated", {
@@ -59,7 +62,8 @@ function registerSocketEvents(io, socket){
         
 
         socket.emit("lobbyJoined", {
-            pin
+            pin,
+            userType: UserType.CLIENT
         });
 
         io.to(pin).emit("playersUpdated", {

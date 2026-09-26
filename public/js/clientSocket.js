@@ -10,14 +10,16 @@ socket.on("connect", () => {
 socket.on("lobbyCreated", (data) => {
     navigate({
         name: "lobby",
-        pin: data.pin
+        pin: data.pin,
+        userType: data.userType
     })
 })
 
 socket.on("lobbyJoined", (data) => {
     navigate({
         name: "lobby",
-        pin: data.pin
+        pin: data.pin,
+        userType: data.userType
     })
 });
 

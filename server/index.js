@@ -1,7 +1,7 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io")
-const { registerSocketEvents } = require("./public/js/socket");
+const { registerSocketEvents } = require("./socket");
 const morgan = require("morgan");
 const dotenv = require("dotenv").config();
 const path = require("path");
@@ -19,8 +19,8 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 // Frontend
-app.use("/", express.static(path.join(__dirname, "/public/html")));
-app.use("/js", express.static(path.join(__dirname, "/public/js")));
+app.use("/", express.static(path.join(__dirname, "../public/html")));
+app.use("/js", express.static(path.join(__dirname, "../public/js")));
 
 
 io.on("connection", (socket) => {
