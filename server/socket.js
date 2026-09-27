@@ -164,7 +164,6 @@ function registerSocketEvents(io, socket){
         }
 
         io.to(pin).emit("registerCharacters", {
-            players: lobby.players,
             pin
         })
     })

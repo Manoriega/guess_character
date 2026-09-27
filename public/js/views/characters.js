@@ -15,13 +15,13 @@ export function CharactersView() {
     `
 }
 
-export function bindCharactersEvents(players, pin, playerId) {
+export function bindCharactersEvents(pin, playerId) {
     const charList = document.getElementById("charactersList");
     if (!charList) return;
 
     charList.innerHTML = "";
     
-    for (let i = 0; i < players.length; i++) {        
+    for (let i = 0; i < 2; i++) {        
         
         const button = `<div class="form-group"><label for="character${i}">Personaje ${i + 1}</label><input type="text" class="form-control" name="character${i}" id="character${i}" placeholder="NombrePersonaje"/></div>`;
         const newElement = document.createElement("li");

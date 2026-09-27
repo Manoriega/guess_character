@@ -1,4 +1,5 @@
 import { bindCharactersEvents, CharactersView } from "./views/characters.js";
+import { bindGameEvents, GameView } from "./views/game.js";
 import {
     HomeView,
     bindHomeEvents
@@ -27,7 +28,12 @@ export function navigate(view){
         
         case "characters":
             app.innerHTML = CharactersView();
-            bindCharactersEvents(view.players, view.pin, view.playerId);
+            bindCharactersEvents(view.pin, view.playerId);
+            break;
+        
+        case "game":
+            app.innerHTML = GameView(view.nickname);
+            bindGameEvents(view.assignment);
             break;
     }
 }

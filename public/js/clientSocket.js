@@ -30,7 +30,7 @@ socket.on("lobbyError", (data) => {
     document.getElementById("pin").value = "";
 })
 
-socket.on("lobbyClosed", (data) => {
+socket.on("lobbyClosed", () => {
     window.alert("El host se desconectó");
     navigate({
         name: "home"        
@@ -47,7 +47,6 @@ socket.on("registerCharacters", (data) => {
     console.log("Navigate to register characters", data.players);
     navigate({
         name: "characters",
-        players: data.players,
         pin: data.pin,
         playerId: socket.id
     })
@@ -55,12 +54,16 @@ socket.on("registerCharacters", (data) => {
 
 socket.on("roundStart", (data) => {
     const {assignment} = data;
-    console.log("Navigate to round game");
+    const nickname = assignment[socket.id].nickname;    
 
-    // Remove character from my list
-    console.log(assignment);
-    delete assignment[socket.id];
-    console.log(assignment);
+    // Remove my character from my list    
+    delete assignment[socket.id];    
+
+    navigate({
+        name: "game",
+        nickname,
+        assignment
+    });
 })
 
 export default socket;
