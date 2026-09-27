@@ -17,7 +17,7 @@ export function navigate(view){
         case "home":
             app.innerHTML = HomeView();
 
-            bindHomeEvents();
+            bindHomeEvents(view.nickname || "");
             break;
         
         case "lobby":

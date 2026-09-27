@@ -194,15 +194,16 @@ function registerSocketEvents(io, socket){
                 return;
             }
 
-            io.to(pin).emit("roundStart", {                                
+            io.to(pin).emit("roundStart", {                               
+                pin, 
                 assignment: assignCharacters(lobby.players, cleanCharacters)
             })
         }
         
     });
 
-    socket.on("guessed", ()=>{
-
+    socket.on("leaveGame", ()=>{
+        socket.disconnect(true);
     });
 
 }
