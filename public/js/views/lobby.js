@@ -1,3 +1,5 @@
+import socket from "/js/clientSocket.js";
+
 const UserType = {
     HOST: 1,
     CLIENT: 2
@@ -24,14 +26,29 @@ export function LobbyView(pin, nickname) {
     `;
 }
 
-export function setPlayerType(userType) {
+export function bindLobbyEvents(userType, pin) {
     const startBtn = document.getElementById("startGame");
     const clientMessage = document.getElementById("clientMessage");
+    const playersList = document.getElementById("players");
     startBtn.style.visibility = "hidden";
     clientMessage.style.visibility = "hidden";
     if (userType === UserType.HOST) {
         console.log("Player is the host");
         startBtn.style.visibility = "visible";
+
+        
+        startBtn.addEventListener("click", () => {
+            console.log("Player wants to start game")
+            let playersCount = playersList.getElementsByTagName("li").length
+            if (playersCount < 2){
+                window.alert("Necesitas más jugadores para empezar.");
+                return;
+            }                
+            
+            socket.emit("gameStart", {
+                pin
+            });
+        })
     }
     else {
         console.log("Player is client");

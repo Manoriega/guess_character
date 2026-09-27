@@ -43,4 +43,24 @@ socket.on("playersUpdated", (data) => {
     updatePlayers(data.players);
 })
 
+socket.on("registerCharacters", (data) => {
+    console.log("Navigate to register characters", data.players);
+    navigate({
+        name: "characters",
+        players: data.players,
+        pin: data.pin,
+        playerId: socket.id
+    })
+})
+
+socket.on("roundStart", (data) => {
+    const {assignment} = data;
+    console.log("Navigate to round game");
+
+    // Remove character from my list
+    console.log(assignment);
+    delete assignment[socket.id];
+    console.log(assignment);
+})
+
 export default socket;

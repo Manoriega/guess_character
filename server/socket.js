@@ -12,6 +12,37 @@ function generatePin() {
     return pin;
 }
 
+function areAllPlayersReady(players, characters) {
+    var playerCount = Object.keys(players).length;
+    var charactersCount = Object.keys(characters).length;
+    return playerCount === charactersCount;
+}
+
+function removeDuplicates(characters) {
+    let allCharacters = []
+    for (key in characters) {
+        characters[key].forEach(char => allCharacters.push(char))
+    }
+
+    var seen = {};
+    return allCharacters.filter(function(item) {
+        return seen.hasOwnProperty(item) ? false : (seen[item] = true);
+    });
+}
+
+function assignCharacters(players, characters) {
+    let assignment = {}
+    for (let i = 0; i < players.length; i++) {
+        const player = players[i];
+        const randIndex = Math.floor(0 + Math.random() * characters.length);
+        assignment[player.socketId] = {}
+        assignment[player.socketId].character = characters[randIndex];
+        assignment[player.socketId].nickname = player.nickname;
+        characters.splice(randIndex, 1);
+    }
+    return assignment
+}
+
 function registerSocketEvents(io, socket){
 
     socket.on("createLobby", (data) => {        
@@ -119,8 +150,56 @@ function registerSocketEvents(io, socket){
         }
     });
 
-    socket.on("submitNames", ()=>{
+    socket.on("gameStart", (data) => {
+        const {pin} = data        
 
+        const lobby = lobbies[pin];
+
+        if (!lobby)
+        {
+            socket.emit("lobbyError", {
+                message: "El lobby no existe."
+            });
+            return;
+        }
+
+        io.to(pin).emit("registerCharacters", {
+            players: lobby.players,
+            pin
+        })
+    })
+
+    socket.on("playerIsReady", (data)=>{        
+        const {pin, playerId, ready} = data;
+        const lobby = lobbies[pin];
+
+        if (!lobby.characters) {
+            lobby.characters = {}
+        }        
+
+        if (ready) {            
+            const {characters} = data;            
+            lobby.characters[playerId] = characters;
+        }
+        else {            
+            delete lobby.characters[playerId];
+        }
+
+        if (areAllPlayersReady(lobby.players, lobby.characters)) {
+            const cleanCharacters = removeDuplicates(lobby.characters);
+            const playerCount = Object.keys(lobby.players).length;
+            if (cleanCharacters.length < playerCount) {
+                io.to(pin).emit("lobbyError", {
+                    message: "Hay demasiados personajes repetidos y no se completa para jugar"
+                });
+                return;
+            }
+
+            io.to(pin).emit("roundStart", {                                
+                assignment: assignCharacters(lobby.players, cleanCharacters)
+            })
+        }
+        
     });
 
     socket.on("guessed", ()=>{

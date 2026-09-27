@@ -1,10 +1,11 @@
+import { bindCharactersEvents, CharactersView } from "./views/characters.js";
 import {
     HomeView,
     bindHomeEvents
 }
 from "./views/home.js";
 
-import { LobbyView, setPlayerType } from "./views/lobby.js";
+import { LobbyView, bindLobbyEvents } from "./views/lobby.js";
 
 const app = document.getElementById("app");
 
@@ -21,7 +22,12 @@ export function navigate(view){
         case "lobby":
             app.innerHTML = LobbyView(view.pin, view.nickname);
 
-            setPlayerType(view.userType);
+            bindLobbyEvents(view.userType, view.pin);
+            break;
+        
+        case "characters":
+            app.innerHTML = CharactersView();
+            bindCharactersEvents(view.players, view.pin, view.playerId);
             break;
     }
 }
