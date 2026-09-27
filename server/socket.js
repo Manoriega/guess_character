@@ -32,7 +32,8 @@ function registerSocketEvents(io, socket){
         
         socket.emit("lobbyCreated", {
             pin: pin,
-            userType: UserType.HOST
+            userType: UserType.HOST,
+            nickname: data.nickname
         });
 
         io.to(pin).emit("playersUpdated", {
@@ -53,6 +54,19 @@ function registerSocketEvents(io, socket){
             return;
         }
 
+        const playerIndex = lobby.players.findIndex(
+            player => player.nickname === nickname
+        );            
+
+        if (playerIndex !== -1)
+        {
+            socket.emit("lobbyError", {
+                message: "Ya hay un jugador con ese nombre."
+            })
+            return;
+        }
+            
+
         lobby.players.push({
             nickname,
             socketId: socket.id
@@ -63,7 +77,8 @@ function registerSocketEvents(io, socket){
 
         socket.emit("lobbyJoined", {
             pin,
-            userType: UserType.CLIENT
+            userType: UserType.CLIENT,
+            nickname
         });
 
         io.to(pin).emit("playersUpdated", {
@@ -82,8 +97,6 @@ function registerSocketEvents(io, socket){
 
             if (playerIndex === -1)
                 continue;
-
-            const player = lobby[playerIndex];
             
             if (playerIndex === 0){
                 io.to(pin).emit("lobbyClosed");

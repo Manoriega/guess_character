@@ -9,7 +9,7 @@ const path = require("path");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-    pingInterval: 10000,
+    pingInterval: 7500,
     pingTimeout: 5000
 });
 const port = process.env.PORT || 3000;

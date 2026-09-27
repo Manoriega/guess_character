@@ -3,13 +3,15 @@ const UserType = {
     CLIENT: 2
 }
 
-export function LobbyView(pin) {
+export function LobbyView(pin, nickname) {
     return `
         <div>
             <h2>Lobby</h2>
 
-            <h3>PIN ${pin}</h3>
+            <h3 id="greetingMessage">Hola ${nickname}</h3>
+            <h4 id="pinMessage">PIN ${pin}</h4>
 
+            <label>Jugadores</label>
             <ul id="players"></ul>
 
             <button id="startGame" type="button" class="btn btn-primary">Iniciar juego</button>

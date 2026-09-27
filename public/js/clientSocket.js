@@ -11,6 +11,7 @@ socket.on("lobbyCreated", (data) => {
     navigate({
         name: "lobby",
         pin: data.pin,
+        nickname: data.nickname,
         userType: data.userType
     })
 })
@@ -19,6 +20,7 @@ socket.on("lobbyJoined", (data) => {
     navigate({
         name: "lobby",
         pin: data.pin,
+        nickname: data.nickname,
         userType: data.userType
     })
 });

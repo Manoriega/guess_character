@@ -19,7 +19,7 @@ export function navigate(view){
             break;
         
         case "lobby":
-            app.innerHTML = LobbyView(view.pin);
+            app.innerHTML = LobbyView(view.pin, view.nickname);
 
             setPlayerType(view.userType);
             break;
