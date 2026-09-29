@@ -1,6 +1,8 @@
 const { UserType } = require("./models/userType");
+const { Lobby, Player } = require("./models/lobby");
 
 const lobbies = {};
+var CurrentRound = {};
 
 function generatePin() {
     let pin = Math.floor(100000 + Math.random() * 900000).toString();
@@ -12,51 +14,13 @@ function generatePin() {
     return pin;
 }
 
-function areAllPlayersReady(players, characters) {
-    var playerCount = Object.keys(players).length;
-    var charactersCount = Object.keys(characters).length;
-    return playerCount === charactersCount;
-}
-
-function removeDuplicates(characters) {
-    let allCharacters = []
-    for (key in characters) {
-        characters[key].forEach(char => allCharacters.push(char))
-    }
-
-    var seen = {};
-    return allCharacters.filter(function(item) {
-        return seen.hasOwnProperty(item) ? false : (seen[item] = true);
-    });
-}
-
-function assignCharacters(players, characters) {
-    let assignment = {}
-    for (let i = 0; i < players.length; i++) {
-        const player = players[i];
-        const randIndex = Math.floor(0 + Math.random() * characters.length);
-        assignment[player.socketId] = {}
-        assignment[player.socketId].character = characters[randIndex];
-        assignment[player.socketId].nickname = player.nickname;
-        characters.splice(randIndex, 1);
-    }
-    return assignment
-}
-
 function registerSocketEvents(io, socket){
 
     socket.on("createLobby", (data) => {        
         
         const pin = generatePin();
 
-        lobbies[pin] = {
-            players: [
-                {
-                    nickname: data.nickname,
-                    socketId: socket.id
-                }
-            ]
-        }
+        lobbies[pin] = new Lobby([new Player(data.nickname, socket.id)])        
 
         socket.join(pin);
                 
@@ -178,29 +142,77 @@ function registerSocketEvents(io, socket){
 
         if (ready) {            
             const {characters} = data;            
-            lobby.characters[playerId] = characters;
+            lobby.AddCharacters(playerId, characters);
         }
         else {            
-            delete lobby.characters[playerId];
+            lobby.RemoveCharacters(playerId);
         }
 
-        if (areAllPlayersReady(lobby.players, lobby.characters)) {
-            const cleanCharacters = removeDuplicates(lobby.characters);
-            const playerCount = Object.keys(lobby.players).length;
-            if (cleanCharacters.length < playerCount) {
+        if (lobby.AreAllPlayersReady()) {
+
+            var result = lobby.StartGame();
+
+            if (result.message) {
                 io.to(pin).emit("lobbyError", {
-                    message: "Hay demasiados personajes repetidos y no se completa para jugar"
+                    message: result.message,
+                    players: lobby.players,
+                    navigate: {
+                        name: "lobby",
+                        pin                        
+                    }
                 });
                 return;
             }
 
+            const round = lobby.GetRoundInfo(1);
+            if (round.message) {
+                io.to(pin).emit("lobbyError", {
+                    message: round.message,
+                    players: lobby.players,
+                    navigate: {
+                        name: "lobby",
+                        pin                        
+                    }
+                });
+                return;
+            }
+            CurrentRound = round
+
             io.to(pin).emit("roundStart", {                               
                 pin, 
-                assignment: assignCharacters(lobby.players, cleanCharacters)
+                roundInfo: round
             })
         }
         
-    });
+    });    
+
+    socket.on("guess", (data) => {
+        const { pin, socketId } = data;
+        CurrentRound.PlayerGuessed(socketId);
+
+        if (CurrentRound.AreAllPlayersDone()) {
+            const lobby = lobbies[pin];
+            console.log("All players finished guessing. Let's go to next round");
+            const round = lobby.GetRoundInfo(lobby.rounds.length + 1);
+            if (round.message) {
+                io.to(pin).emit("lobbyError", {
+                    message: round.message,
+                    players: lobby.players,
+                    navigate: {
+                        name: "lobby",
+                        pin
+                    }
+                });
+                return;
+            }
+            CurrentRound = round
+
+            io.to(pin).emit("roundStart", {                               
+                pin, 
+                roundInfo: round
+            })
+        }
+    })
 
     socket.on("leaveGame", ()=>{
         socket.disconnect(true);

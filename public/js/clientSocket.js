@@ -3,11 +3,17 @@ import { navigate } from "/js/app.js";
 
 const socket = io();
 
+var MyUser = null;
+
 socket.on("connect", () => {
     console.log("Conectado al servidor:", socket.id);
 })
 
 socket.on("lobbyCreated", (data) => {
+    MyUser = {
+        nickname: data.nickname,
+        userType: data.userType
+    }
     navigate({
         name: "lobby",
         pin: data.pin,
@@ -17,6 +23,10 @@ socket.on("lobbyCreated", (data) => {
 })
 
 socket.on("lobbyJoined", (data) => {
+    MyUser = {
+        nickname: data.nickname,
+        userType: data.userType
+    }
     navigate({
         name: "lobby",
         pin: data.pin,
@@ -27,7 +37,23 @@ socket.on("lobbyJoined", (data) => {
 
 socket.on("lobbyError", (data) => {
     window.alert(data.message);
-    document.getElementById("pin").value = "";
+    var pinInput = document.getElementById("pin");
+    if (pinInput)
+        document.getElementById("pin").value = "";
+
+    if (data.navigate) {
+        navigate({
+            name: data.navigate.name,
+            pin: data.navigate.pin,
+            nickname: MyUser.nickname,
+            userType: MyUser.userType
+        })
+        
+        if (data.navigate.name == "lobby"){
+            updatePlayers(data.players);
+
+        }
+    }
 })
 
 socket.on("lobbyClosed", () => {
@@ -53,7 +79,9 @@ socket.on("registerCharacters", (data) => {
 })
 
 socket.on("roundStart", (data) => {
-    const {assignment} = data;
+    const {pin, roundInfo} = data;
+    console.log(roundInfo);
+    const assignment = roundInfo.assignment;
     const nickname = assignment[socket.id].nickname;    
 
     // Remove my character from my list    
@@ -61,6 +89,8 @@ socket.on("roundStart", (data) => {
 
     navigate({
         name: "game",
+        roundNumber: roundInfo.roundNum,
+        pin,
         nickname,
         assignment
     });

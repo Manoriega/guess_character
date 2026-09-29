@@ -1,16 +1,18 @@
 import { navigate } from "/js/app.js";
 import socket from "/js/clientSocket.js";
 
-export function GameView(nickname) {
+export function GameView(nickname, roundNumber) {
     return `
     <div class="container">
         <h1>Adivina el Personaje</h1>
+        <h2>Ronda ${roundNumber}</h2>
 
         <h3 id="greetingMessage">Hola ${nickname}. Tu personaje ha sido asignado</h3>
         
         <ul id="gamePlayers"></ul>
 
 
+        <button id="guessButton" type="button" class="btn btn-success">Adiviné</button>
         <button id="exitButton" type="button" class="btn btn-danger">Salir</button>
 
     </div>
@@ -18,7 +20,7 @@ export function GameView(nickname) {
 }
 
 
-export function bindGameEvents(roundInfo, nickname){
+export function bindGameEvents(roundInfo, nickname, pin){
     const gamePlayersList = document.getElementById("gamePlayers");
     if (!gamePlayersList) return;
     gamePlayersList.innerHTML = "";
@@ -31,6 +33,17 @@ export function bindGameEvents(roundInfo, nickname){
                 pin: roundInfo.pin,
                 nickname
             })
+        }
+    })
+
+    document.getElementById("guessButton").addEventListener("click", () => {
+        if (window.confirm("¿Seguro que adivinaste tu personaje?")) {
+            socket.emit("guess", {
+                socketId: socket.id,
+                pin
+            });
+
+            document.getElementById("guessButton").disabled = true;
         }
     })
 

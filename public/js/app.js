@@ -32,8 +32,8 @@ export function navigate(view){
             break;
         
         case "game":
-            app.innerHTML = GameView(view.nickname);
-            bindGameEvents(view.assignment);
+            app.innerHTML = GameView(view.nickname, view.roundNumber);
+            bindGameEvents(view.assignment, view.nickname, view.pin);
             break;
     }
 }
