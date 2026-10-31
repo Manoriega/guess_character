@@ -20,7 +20,7 @@ function registerSocketEvents(io, socket){
         
         const pin = generatePin();
 
-        const player = new Player(data.nickname, socket.id);
+        const player = new Player(data.nickname, socket.id, UserType.HOST);
 
         player.playerId = data.playerId;
         player.connected = true;
@@ -69,7 +69,7 @@ function registerSocketEvents(io, socket){
             return;
         }
 
-        const player = new Player(nickname, socket.id);
+        const player = new Player(nickname, socket.id, UserType.CLIENT);
 
         player.playerId = data.playerId;
         player.connected = true;
