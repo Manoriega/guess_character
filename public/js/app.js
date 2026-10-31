@@ -17,7 +17,7 @@ export function navigate(view){
         case "home":
             app.innerHTML = HomeView();
 
-            bindHomeEvents(view.nickname || "");
+            bindHomeEvents(view.playerId);
             break;
         
         case "lobby":

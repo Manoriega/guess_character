@@ -1,12 +1,24 @@
 import { updatePlayers } from "/js/views/lobby.js";
 import { navigate } from "/js/app.js";
+import { RegisterId, GetUserId } from "./cookies.js";
 
 const socket = io();
 
 var MyUser = null;
 
-socket.on("connect", () => {
+let playerId = GetUserId()
+
+if (!playerId) {
+    playerId = crypto.randomUUID();
+    RegisterId(playerId)
+}
+
+socket.on("connect", () => {    
     console.log("Conectado al servidor:", socket.id);
+    
+    socket.emit("resumeSession", {
+        playerId
+    })
 })
 
 socket.on("lobbyCreated", (data) => {
@@ -33,6 +45,28 @@ socket.on("lobbyJoined", (data) => {
         nickname: data.nickname,
         userType: data.userType
     })
+});
+
+socket.on("sessionResumed", (data) => {
+    MyUser = {
+        nickname: data.nickname,
+        userType: data.userType
+    };
+
+    console.log("Sesión recuperada:", data);
+
+    navigate({
+        name: "lobby",
+        pin: data.pin,
+        nickname: data.nickname,
+        userType: data.userType
+    });
+
+    updatePlayers(data.players)
+})
+
+socket.on("sessionNotFound", () => {
+    console.log("No existe una sesión anterior.");
 });
 
 socket.on("lobbyError", (data) => {

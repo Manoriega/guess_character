@@ -20,13 +20,21 @@ function registerSocketEvents(io, socket){
         
         const pin = generatePin();
 
-        lobbies[pin] = new Lobby([new Player(data.nickname, socket.id)])        
+        const player = new Player(data.nickname, socket.id);
+
+        player.playerId = data.playerId;
+        player.connected = true;
+
+        console.log(player)
+
+        lobbies[pin] = new Lobby([player]);
 
         socket.join(pin);
                 
         
         socket.emit("lobbyCreated", {
             pin: pin,
+            playerId: data.playerId,
             userType: UserType.HOST,
             nickname: data.nickname
         });
@@ -60,12 +68,14 @@ function registerSocketEvents(io, socket){
             })
             return;
         }
+
+        const player = new Player(nickname, socket.id);
+
+        player.playerId = data.playerId;
+        player.connected = true;
             
 
-        lobby.players.push({
-            nickname,
-            socketId: socket.id
-        });
+        lobby.players.push(player);
 
         socket.join(pin);
         
@@ -81,35 +91,30 @@ function registerSocketEvents(io, socket){
         });
     });
 
-    socket.on("disconnect", () => {        
-
+    socket.on("disconnect", () => {
         for (const pin in lobbies) {
+
             const lobby = lobbies[pin];
 
-            const playerIndex = lobby.players.findIndex(
-                player => player.socketId === socket.id
-            );            
+            const player = lobby.players.find(
+                p => p.socketId === socket.id
+            );
 
-            if (playerIndex === -1)
+            if (!player) {
                 continue;
-            
-            if (playerIndex === 0){
-                io.to(pin).emit("lobbyClosed");
-                delete lobbies[pin];
-                break;
             }
 
-            lobby.players.splice(playerIndex, 1);
+            player.connected = false;
+            player.socketId = null;
+
+            console.log(
+                `${player.nickname} perdió la conexión en ${pin}`
+            );
+
             io.to(pin).emit("playersUpdated", {
                 players: lobby.players
             });
 
-            if (lobby.players.length === 0)
-            {
-                delete lobbies[pin];
-                                                
-                return;
-            }
             break;
         }
     });
@@ -216,6 +221,51 @@ function registerSocketEvents(io, socket){
 
     socket.on("leaveGame", ()=>{
         socket.disconnect(true);
+    });
+
+    socket.on("resumeSession", (data) => {
+        const { playerId } = data;
+
+        for (const pin in lobbies) {
+
+            const lobby = lobbies[pin];
+
+            const player = lobby.players.find(
+                p => p.playerId === playerId
+            );
+
+            if (!player) {
+                continue;
+            }
+
+            // Actualizar la conexión del jugador
+            player.socketId = socket.id;
+            player.connected = true;
+
+            // Volver a unirlo a su room
+            socket.join(pin);
+
+            console.log(
+                `${player.nickname} recuperó su sesión en ${pin}`
+            );
+
+            socket.emit("sessionResumed", {
+                pin,
+                nickname: player.nickname,
+                playerId,
+                userType: player.userType,
+                players: lobby.players
+            });
+
+            io.to(pin).emit("playersUpdated", {
+                players: lobby.players
+            });
+
+            return;
+        }
+
+        // No encontramos una sesión anterior
+        socket.emit("sessionNotFound");
     });
 
 }

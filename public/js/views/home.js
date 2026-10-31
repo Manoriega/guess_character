@@ -1,3 +1,4 @@
+import { GetUserId } from "../cookies.js";
 import socket from "/js/clientSocket.js";
 
 export function HomeView(nickname) {
@@ -29,7 +30,7 @@ export function HomeView(nickname) {
     `
 }
 
-export function bindHomeEvents(){
+export function bindHomeEvents(playerId){
 
     document
         .getElementById("createLobby")
@@ -44,7 +45,8 @@ export function bindHomeEvents(){
             }
 
             socket.emit("createLobby", {
-                nickname
+                nickname,
+                playerId: GetUserId()
             });
         });
 
@@ -67,7 +69,8 @@ export function bindHomeEvents(){
 
             socket.emit("joinLobby", {
                 nickname,
-                pin
+                pin,
+                playerId: GetUserId()
             })
         })
 

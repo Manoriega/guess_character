@@ -57,12 +57,12 @@ class Lobby {
     RemoveDuplicates() {
         let allCharacters = []
         for (var key in this.characters) {
-            this.characters[key].forEach(char => allCharacters.push(char))
+            this.characters[key].forEach(char => allCharacters.push({key, char}))
         }
     
         var seen = {};
         return allCharacters.filter(function(item) {
-            return seen.hasOwnProperty(item) ? false : (seen[item] = true);
+            return seen.hasOwnProperty(item.char) ? false : (seen[item.char] = true);
         });
     }    
     
@@ -76,8 +76,11 @@ class Lobby {
         let roundInfo = new RoundInfo(roundNumber);
         for (let i = 0; i < this.players.length; i++) {
             const player = this.players[i];
-            const randIndex = Math.floor(0 + Math.random() * this.cleanCharacters.length);
-            roundInfo.AddPlayerInfo(player.socketId, this.cleanCharacters[randIndex], player.nickname);            
+            let randIndex = Math.floor(0 + Math.random() * this.cleanCharacters.length);            
+            while (player.socketId == this.cleanCharacters[randIndex].key) {
+                randIndex = Math.floor(0 + Math.random() * this.cleanCharacters.length);
+            }
+            roundInfo.AddPlayerInfo(player.socketId, this.cleanCharacters[randIndex].char, player.nickname);            
             this.cleanCharacters.splice(randIndex, 1);
         }
         this.rounds.push(roundInfo);
